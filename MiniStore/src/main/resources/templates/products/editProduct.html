@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product — Mini Store</title>
+    <meta name="description" content="Edit an existing product in your Mini Store catalogue.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --accent: #a5b4fc;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --bg-nav: rgba(15, 23, 42, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.06);
+            --input-border: rgba(255, 255, 255, 0.12);
+            --input-focus: rgba(99, 102, 241, 0.5);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: var(--bg-nav);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand span {
+            color: var(--primary);
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.05rem;
+            font-weight: 400;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .navbar-toggler {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-toggler {
+                display: block;
+            }
+
+            .navbar-nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--bg-nav);
+                backdrop-filter: blur(16px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 1.5rem 0;
+                text-align: center;
+                gap: 1.5rem;
+            }
+
+            .navbar-nav.active {
+                display: flex;
+            }
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            padding: 3rem 5% 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .page-header-text h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 0.3rem;
+        }
+
+        .page-header-text p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            background: var(--bg-card);
+            transition: all 0.25s;
+            margin-bottom: 1rem;
+            align-self: flex-start;
+        }
+
+        .btn-back:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        /* ── Form card ── */
+        .form-container {
+            margin: 0 5% 4rem;
+            max-width: 780px;
+        }
+
+        /* Edit badge shown at top of card */
+        .edit-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--warning);
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Form grid ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid .full {
+                grid-column: 1;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* ── Form controls ── */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        label .required {
+            color: var(--danger);
+            margin-left: 3px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--input-focus);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* ── Image preview ── */
+        .img-preview-wrap {
+            margin-top: 0.75rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .img-preview-wrap.visible {
+            display: flex;
+        }
+
+        .img-preview-inner {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .img-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: opacity 0.3s;
+        }
+
+        .img-preview-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .hint {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 0.2rem;
+        }
+
+        /* ── Actions ── */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.72rem 1.8rem;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .btn-ghost {
+            background: var(--input-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.09);
+            color: var(--text-main);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #0f172a;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+        }
+
+        .btn-warning:hover {
+            background: #fbbf24;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(245, 158, 11, 0.45);
+        }
+
+        .btn-warning:active {
+            transform: translateY(0);
+        }
+
+        /* ── Alert ── */
+        .alert {
+            padding: 0.85rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+        }
+
+        /* field error */
+        .field-error {
+            font-size: 0.78rem;
+            color: var(--danger);
+            margin-top: 0.2rem;
+        }
+
+        input.has-error,
+        textarea.has-error {
+            border-color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a class="navbar-brand" href="/">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color:#6366f1;">
+                <path
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Mini<span>Store</span>
+        </a>
+
+        <button class="navbar-toggler" id="nav-toggler"
+            onclick="document.getElementById('nav-menu').classList.toggle('active')">☰</button>
+
+        <div class="navbar-nav" id="nav-menu">
+            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/products">Products</a>
+            <a class="nav-link" href="/about">About Us</a>
+            <a class="nav-link" href="/contact">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div style="display:flex;flex-direction:column;gap:0.4rem;">
+            <a href="/products" class="btn-back" id="back-to-products">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Back to Products
+            </a>
+            <div class="page-header-text">
+                <h1>Edit Product</h1>
+                <p>Update the details below to modify this product.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-container">
+        <div class="form-card">
+
+            <!-- Edit mode badge -->
+            <div class="edit-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Editing: <span th:text="${product.name}">Product Name</span>
+            </div>
+
+            <!-- Validation errors -->
+            <div th:if="${#fields.hasErrors('*{productDTO.*}')}" class="alert alert-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Please fix the errors below before saving.
+            </div>
+
+            <!-- Form bound to productDTO, posts to /products/editProduct/{id} -->
+            <form th:action="@{/products/editProduct/{id}(id=${product.id})}" th:object="${productDTO}" method="post"
+                id="edit-product-form">
+
+                <!-- Basic Info -->
+                <p class="section-label">Basic Information</p>
+                <div class="form-grid">
+
+                    <div class="form-group full">
+                        <label for="product-name">Product Name<span class="required">*</span></label>
+                        <input type="text" id="product-name" th:field="*{name}"
+                            th:class="${#fields.hasErrors('name')} ? 'has-error' : ''"
+                            placeholder="e.g. Wireless Keyboard" autocomplete="off" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description" th:field="*{description}"
+                            placeholder="Short description of the product…"></textarea>
+                    </div>
+
+                </div>
+
+                <!-- Pricing & Inventory -->
+                <p class="section-label" style="margin-top:2rem;">Pricing &amp; Inventory</p>
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="product-price">Price ($)<span class="required">*</span></label>
+                        <input type="number" id="product-price" th:field="*{price}"
+                            th:class="${#fields.hasErrors('price')} ? 'has-error' : ''" placeholder="0.00" min="0"
+                            step="0.01" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-stock">Stock Quantity<span class="required">*</span></label>
+                        <input type="number" id="product-stock" th:field="*{stock}"
+                            th:class="${#fields.hasErrors('stock')} ? 'has-error' : ''" placeholder="0" min="0" step="1"
+                            required>
+                        <span class="field-error" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></span>
+                    </div>
+
+                </div>
+
+                <!-- Media -->
+                <p class="section-label" style="margin-top:2rem;">Media</p>
+                <div class="form-grid">
+
+                    <div class="form-group full">
+                        <label for="product-image">Image URL</label>
+                        <input type="url" id="product-image" th:field="*{image}"
+                            placeholder="https://example.com/image.png" oninput="previewImage(this.value)">
+                        <span class="hint">Paste a direct link to a publicly accessible image.</span>
+
+                        <!-- Image preview — only visible when URL is present -->
+                        <div class="img-preview-wrap" id="preview-wrap">
+                            <div class="img-preview-inner">
+                                <img id="img-preview" class="img-preview" src="" alt="Preview" onerror="hidePreview()">
+                                <span class="img-preview-label">Image preview</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a href="/products" class="btn btn-ghost" id="cancel-btn">Cancel</a>
+                    <button type="submit" class="btn btn-warning" id="save-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                            <polyline points="17 21 17 13 7 13 7 21" />
+                            <polyline points="7 3 7 8 15 8" />
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(url) {
+            const wrap = document.getElementById('preview-wrap');
+            const img = document.getElementById('img-preview');
+            if (url && url.trim()) {
+                img.src = url;
+                wrap.classList.add('visible');
+            } else {
+                wrap.classList.remove('visible');
+                img.src = '';
+            }
+        }
+
+        function hidePreview() {
+            // Called when the image URL is broken/unreachable
+            document.getElementById('preview-wrap').classList.remove('visible');
+        }
+
+        // Show preview on load if a URL is already filled in (pre-populated from the product)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('product-image');
+            if (urlInput && urlInput.value && urlInput.value.trim()) {
+                previewImage(urlInput.value);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
